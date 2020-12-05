@@ -1,6 +1,33 @@
 import pygame
 import random
 
+# Set up the Bubble brain:
+class Bubble() :
+    # Bubble class constructer function
+    def __init__(self, x, y):
+        #Make some for variables for the Bubble
+        self.x = x
+        self.y = y
+        self.speed = random.randint(1, 3)
+        self.pic = pygame.image.load("../assets/Bubble.png")
+        self.on_screen = True
+
+        # Shrink the Bubble pic
+        self.pic = pygame.transform.scale(self.pic, (15, 15))
+
+    # Bubble uptade function
+    def update(self, screen) :
+        self.y -= self.speed
+        screen.blit(self.pic, (self.x, self.y))
+
+        if self.y < -self.pic.get_height():
+            self.on_screen = False
+
+        
+
+
+# End of Bubble class
+
 # Set up the enemy's brain
 class Enemy():
     # Enemy constructer function
@@ -8,7 +35,15 @@ class Enemy():
         # make the enemy's variables
         self.x = x
         self.y = y
-        self.pic = pygame.image.load("../assets/Fish02_A.png")
+        self.type = random.randint(0,3)
+        if self.type == 0:
+            self.pic = pygame.image.load("../assets/Fish01_A.png")
+        if self.type == 1:
+          self.pic = pygame.image.load("../assets/Fish02_A.png")
+        if self.type == 2:
+          self.pic = pygame.image.load("../assets/Fish03_A.png")
+        if self.type == 3:
+          self.pic = pygame.image.load("../assets/Fish04_A.png")
         self.speed = speed
         self.size = size
         self.hitbox = pygame.Rect(self.x, self.y, int(self.size*1.25), self.size)
@@ -81,6 +116,11 @@ enemy_timer = enemy_timer_max
 enemies = []
 enemies_to_remove = []
 
+# Make the bubbles array and timeer stuff
+bubbles = []
+bubbles_to_remove = []
+bubble_timer = 0
+
 # ***************** Loop Land Below *****************
 # Everything under 'while running' will be repeated over and over again
 while running:
@@ -103,8 +143,7 @@ while running:
         player_y+= player_speed
     if keys[pygame.K_UP]:
         player_y -= player_speed
-    if keys[pygame.K_SPACE]:
-        player_size +=2
+    
 
     # Stop the player from leaving the screen
     if player_x < 0:
@@ -118,7 +157,7 @@ while running:
     
         
 
-    # Stop the player from leaving the screen.
+    
         
     # Do the background animation_timer
     bg_animation_timer -= 1
@@ -136,9 +175,9 @@ while running:
     # Spawn a new Enemy whenever enemy_timer hits 0
     enemy_timer -=1
     if enemy_timer <= 0:
-        new_enemy_y = random.randint(0, game_height - 30)
-        new_enemy_speed = random.randint(1, 5)
+        new_enemy_speed = random.randint(int(1.5), int(4.5))
         new_enemy_size = random.randint(player_size/2, player_size*2)
+        new_enemy_y = random.randint(0, game_height - new_enemy_size)
         if random.randint(0, 1) == 0:
             enemies.append(Enemy(-new_enemy_size*2, new_enemy_y, new_enemy_speed, new_enemy_size))
         else:
@@ -155,6 +194,27 @@ while running:
         enemy.update(screen)
         if enemy.x < - 1000 or enemy.x > game_width+1000:
             enemies_to_remove.append(enemy)
+
+    # Make a new bubble when the bubble timer reaches 0
+    bubble_timer -=1
+    if bubble_timer <= 0:
+        #bubbles.append(Bubble(400,400))
+        bubbles.append(Bubble( random.randint(0,game_width), random.randint(int(game_height/3.5),game_height) ))
+        bubble_timer = random.randint(40, 80)
+
+
+    # Update all the bubbles
+    for bubble in bubbles:
+        if bubble.on_screen:
+            bubble.update(screen)
+        else:
+            bubbles_to_remove.append(bubble)
+
+    # Remove the bubbles in bubbles_to_remove
+    for bubble in bubbles_to_remove:
+        bubbles.remove(bubble)
+
+    bubbles_to_remove = []
         
     if player_alive:        
         # Update the player hitbox       
